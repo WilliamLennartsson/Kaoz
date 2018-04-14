@@ -17,18 +17,26 @@ class GameScene: SKScene {
     var panRecognizer = UIPanGestureRecognizer()
     var pinchRecognizer = UIPinchGestureRecognizer()
     var maxScale: CGFloat = 0
+    let moveBtn = moveButton(size: CGSize(width: 150, height: 150))
+    
     
     var cow = Cow()
+    var enemyCow = Cow()
     
     
     override func didMove(to view: SKView) {
         setUpLevel()
         addGestureRecognizer()
-        makeCow()
+        makeCows()
+        
     }
     
-    func makeCow(){
+    func makeCows(){
         addChild(cow)
+        cow.position = CGPoint(x: 70, y: 1000)
+        addChild(enemyCow)
+        enemyCow.position = CGPoint(x: 500, y: 1000)
+        
     }
     
     func setUpLevel(){
@@ -36,8 +44,24 @@ class GameScene: SKScene {
             self.mapNode = mapNode
             maxScale = mapNode.mapSize.height / frame.size.height
         }
+        addMapBounds()
         addCamera()
-
+        
+    }
+    
+    func addMapBounds(){
+        let floorNode = SKSpriteNode(color: UIColor.brown, size: CGSize(width: mapNode.frame.size.width, height: 32))
+        floorNode.physicsBody = SKPhysicsBody(edgeLoopFrom: floorNode.frame)
+        floorNode.physicsBody?.affectedByGravity = false
+        floorNode.zPosition = 4
+        addChild(floorNode)
+        floorNode.position.x = mapNode.frame.size.width / 2
+        floorNode.position.y = floorNode.size.height
+        let aoda = SKPhysicsBody(edgeLoopFrom: mapNode.frame)
+        mapNode.physicsBody = aoda
+        addChild(moveBtn)
+        moveBtn.position = CGPoint(x: mapNode.frame.size.width/2, y: mapNode.frame.size.height/2)
+        
     }
     
     func addCamera(){
@@ -58,7 +82,45 @@ class GameScene: SKScene {
         
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            
+            
+            print("\(location) location . \(moveBtn.position) button pos")
+            if frame.contains(location) {
+                let bulletSpeed: CGFloat = 150
+                var deltaX = (location.x - cow.position.x)
+                var deltaY = (location.y - cow.position.y)
+                let chargeForce: CGFloat = 5
+                let mag = sqrt(deltaX * deltaX + deltaY * deltaY)
+                deltaX /= mag
+                deltaY /= mag
+                
+                let dx: CGFloat = deltaX * bulletSpeed * chargeForce
+                let dy: CGFloat = deltaY * bulletSpeed * chargeForce
+                let dir: CGVector = CGVector(dx: dx, dy: dy)
+                
+                cow.fireGun(dir: dir)
+                
+                
+                if moveBtn.leftButton.contains(location){
+                    cow.move(dir: .left)
+                }
+                if moveBtn.rightButton.contains(location){
+                    cow.move(dir: .right)
+                }
+            }
+            
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+    }
 }
+
+
 
 extension GameScene {
     

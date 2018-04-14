@@ -12,6 +12,7 @@ import GameplayKit
 
 class GameViewController: UIViewController {
 
+    let button = UIButton()
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -29,7 +30,7 @@ class GameViewController: UIViewController {
             
             view.showsFPS = true
             view.showsNodeCount = true
+            
         }
     }
-
 }
