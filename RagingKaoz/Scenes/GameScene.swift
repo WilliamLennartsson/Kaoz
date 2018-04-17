@@ -29,6 +29,10 @@ class GameScene: SKScene {
         addGestureRecognizer()
         makeCows()
         
+        
+        print("Gamescene Framesize - \(self.frame.size)")
+        print("Mapnode Framesize - \(mapNode.frame.size)")
+        
     }
     
     func makeCows(){
@@ -84,34 +88,21 @@ class GameScene: SKScene {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
-            
+            let location = touch.location(in: mapNode)
             
             print("\(location) location . \(moveBtn.position) button pos")
-            if frame.contains(location) {
-                let bulletSpeed: CGFloat = 150
-                var deltaX = (location.x - cow.position.x)
-                var deltaY = (location.y - cow.position.y)
-                let chargeForce: CGFloat = 5
-                let mag = sqrt(deltaX * deltaX + deltaY * deltaY)
-                deltaX /= mag
-                deltaY /= mag
+            if mapNode.contains(location) {
                 
-                let dx: CGFloat = deltaX * bulletSpeed * chargeForce
-                let dy: CGFloat = deltaY * bulletSpeed * chargeForce
-                let dir: CGVector = CGVector(dx: dx, dy: dy)
+                if cow.isAiming{
+                    cow.fireGun()
+                } else {
+                    cow.aimPoint = location
+                }
                 
-                cow.fireGun(dir: dir)
-                
-                
-                if moveBtn.leftButton.contains(location){
+                if moveBtn.contains(location){
                     cow.move(dir: .left)
                 }
-                if moveBtn.rightButton.contains(location){
-                    cow.move(dir: .right)
-                }
             }
-            
         }
     }
     
@@ -119,7 +110,6 @@ class GameScene: SKScene {
         
     }
 }
-
 
 
 extension GameScene {

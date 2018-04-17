@@ -20,8 +20,21 @@ enum Direction {
 
 class Cow: SKSpriteNode {
     
+    
     var HP: Int = 150
     let cowSpeed: CGFloat = 8
+    
+    var isAiming = false
+    var currentAim: SKSpriteNode?
+    var aimPoint: CGPoint? {
+        didSet{
+            if aimPoint != nil {
+                aim(position: aimPoint!)
+            } else {
+                isAiming = false
+            }
+        }
+    }
     
     let weapon = Bazooka()
     var isDead: Bool = false {
@@ -39,6 +52,8 @@ class Cow: SKSpriteNode {
         physicsBody = SKPhysicsBody(circleOfRadius: cowSize.width/2)
         physicsBody?.affectedByGravity = true
         physicsBody?.isDynamic = true
+        physicsBody?.allowsRotation = false
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
     }
     
@@ -46,18 +61,49 @@ class Cow: SKSpriteNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func fireGun(dir: CGVector){
+    func fireGun(){
+        if let aim = aimPoint {
+            
+            let bulletSpeed: CGFloat = 150
+            let chargeForce: CGFloat = 5
+            var deltaX = (aim.x - position.x)
+            var deltaY = (aim.y - position.y)
+            let mag = sqrt(deltaX * deltaX + deltaY * deltaY)
+            deltaX /= mag
+            deltaY /= mag
+            
+            let dx: CGFloat = deltaX * bulletSpeed * chargeForce
+            let dy: CGFloat = deltaY * bulletSpeed * chargeForce
+            let dir: CGVector = CGVector(dx: dx, dy: dy)
+            
+            var bullet = SKSpriteNode(color: UIColor.black, size: CGSize(width: 20, height: 20))
+            bullet.position = CGPoint(x: position.x, y: position.y)
+            bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width/2)
+            bullet.physicsBody?.affectedByGravity = true
+            bullet.physicsBody?.mass = 1
+            //bullet.physicsBody?.collisionBitMask = Colli
+            super.addChild(bullet)
+            bullet.physicsBody?.applyImpulse(dir)
+            currentAim?.removeFromParent()
+            currentAim = nil
+            self.aimPoint = nil
+            print("shot")
+        }
+    }
+    
+    func aim(position: CGPoint){
+
+        currentAim = SKSpriteNode(imageNamed: "aimBro2")
+        currentAim!.size = CGSize(width: 100, height: 100)
+        isAiming = true
+        currentAim!.position = position
         
-        var bullet = SKSpriteNode(color: UIColor.black, size: CGSize(width: 20, height: 20))
-        bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width/2)
-        bullet.physicsBody?.affectedByGravity = true
-        bullet.position = CGPoint(x: position.x, y: position.y)
-        bullet.physicsBody?.mass = 1
-        super.addChild(bullet)
+//        let anchor = CGPoint(x: (currentAim?.position.x)! - ((currentAim?.size.width)!/2), y: (currentAim?.position.y)! - ((currentAim?.size.height)!/2))
+        currentAim!.anchorPoint = CGPoint(x: 1, y: 1)
+        print("\(currentAim?.position)")
         
-        bullet.physicsBody?.applyImpulse(dir)
+        super.addChild(currentAim!)
         
-        print("shot")
     }
     
     func move(dir: Direction){

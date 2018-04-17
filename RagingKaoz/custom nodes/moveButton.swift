@@ -18,8 +18,8 @@ class moveButton: SKSpriteNode {
         buttonSize = size
         
         leftButton = SKSpriteNode(color: UIColor.red, size: CGSize(width: buttonSize.width/2, height: buttonSize.height))
-        
-        
+
+
         rightButton = SKSpriteNode(color: UIColor.green, size: CGSize(width: buttonSize.width/2, height: buttonSize.height))
         
         super.init(texture: nil, color: UIColor.red, size: size)
