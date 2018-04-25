@@ -9,7 +9,21 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+enum PlayerTurnCategory {
+    case Player1
+    case Player2
+}
+
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
+
+    var currentCow = Cow()
+
+    var currentPlayerActive = PlayerTurnCategory.Player1
+    let playerTurnLabel = SKLabelNode(text: "")
+    
+    let moveBtnLeft = moveButton(size: CGSize(width: 100, height: 100))
+    let moveBtnRight = moveButton(size: CGSize(width: 100, height: 100))
     
     var mapNode = SKTileMapNode()
     
@@ -17,12 +31,53 @@ class GameScene: SKScene {
     var panRecognizer = UIPanGestureRecognizer()
     var pinchRecognizer = UIPinchGestureRecognizer()
     var maxScale: CGFloat = 0
-    let moveBtn = moveButton(size: CGSize(width: 150, height: 150))
+    
+    var player1 = Cow()
+    var player2 = Cow()
     
     
-    var cow = Cow()
-    var enemyCow = Cow()
     
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+//        let whichNode = (contact.bodyA.node != cow.player) ? contact.bodyA.node : contact.bodyB.node
+
+        for bullet in player1.bullets {
+            if contact.bodyA.categoryBitMask == bullet.physicsBody?.categoryBitMask
+                && contact.bodyB.categoryBitMask == player1.physicsBody?.categoryBitMask {
+                
+                
+                
+            } else if contact.bodyB.categoryBitMask == bullet.physicsBody?.categoryBitMask
+                && contact.bodyA.categoryBitMask == player1.physicsBody?.categoryBitMask {
+                
+            }
+            
+        }
+        
+        
+//        if contact.bodyA.categoryBitMask == BulletCategory || contact.bodyB.categoryBitMask == BulletCategory {
+//            print("MUUUU")
+//        }
+//        if contact.bodyA.contactTestBitMask == BulletCategory {
+//            print("MUUUUX2")
+//        }
+//
+//        if contact.bodyB.contactTestBitMask == BulletCategory {
+//            print("MUUUUX3")
+//        }
+//
+//    }
+    }
+    
+
+    func playerGotHit(){
+        
+    }
+        
+        
+    override func update(_ currentTime: TimeInterval) {
+        
+    }
     
     override func didMove(to view: SKView) {
         setUpLevel()
@@ -33,13 +88,32 @@ class GameScene: SKScene {
         print("Gamescene Framesize - \(self.frame.size)")
         print("Mapnode Framesize - \(mapNode.frame.size)")
         
+        gameTurn(playerTurn: currentPlayerActive)
+        
+    }
+    
+    func gameTurn(playerTurn : PlayerTurnCategory){
+        switch playerTurn{
+        case .Player1:
+            currentCow = player1
+        case .Player2:
+            currentCow = player2
+        default:
+            return
+        }
+        gameCamera.position = currentCow.position
+        playerTurnLabel.text = "\(playerTurn)s Turn to move."
+        playerTurnLabel.fontSize = 40
+        playerTurnLabel.position = CGPoint(x: currentCow.position.x, y: currentCow.position.y + 70)
+        currentCow.state = .Moving
+        
     }
     
     func makeCows(){
-        addChild(cow)
-        cow.position = CGPoint(x: 70, y: 1000)
-        addChild(enemyCow)
-        enemyCow.position = CGPoint(x: 500, y: 1000)
+        addChild(player1)
+        player1.position = CGPoint(x: mapNode.frame.size.width / 4, y: 150)
+        addChild(player2)
+        player2.position = CGPoint(x: mapNode.frame.size.width / 1.5, y: 150)
         
     }
     
@@ -50,6 +124,7 @@ class GameScene: SKScene {
         }
         addMapBounds()
         addCamera()
+        self.physicsWorld.contactDelegate = self //where self is a current scene
         
     }
     
@@ -61,10 +136,21 @@ class GameScene: SKScene {
         addChild(floorNode)
         floorNode.position.x = mapNode.frame.size.width / 2
         floorNode.position.y = floorNode.size.height
+        
         let aoda = SKPhysicsBody(edgeLoopFrom: mapNode.frame)
         mapNode.physicsBody = aoda
-        addChild(moveBtn)
-        moveBtn.position = CGPoint(x: mapNode.frame.size.width/2, y: mapNode.frame.size.height/2)
+        
+        self.addChild(moveBtnLeft)
+        self.addChild(moveBtnRight)
+        //moveBtnLeft.position = CGPoint(x: gameCamera.position.x - gameCamera., y: <#T##CGFloat#>)
+        moveBtnRight.position = CGPoint(x:gameCamera.position.x + moveBtnLeft.size.width , y: gameCamera.position.y)
+        moveBtnLeft.color = UIColor(red: 0, green: 255, blue: 0, alpha: 1)
+        
+        let centreWallNode = SKSpriteNode(color: .brown, size: CGSize(width: 50, height: self.size.height/3))
+        centreWallNode.position = CGPoint(x: mapNode.frame.size.width/2, y: centreWallNode.size.height)
+        self.addChild(centreWallNode)
+        
+        self.addChild(playerTurnLabel)
         
     }
     
@@ -86,23 +172,35 @@ class GameScene: SKScene {
         
     }
     
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let location = touch.location(in: mapNode)
             
-            print("\(location) location . \(moveBtn.position) button pos")
-            if mapNode.contains(location) {
-                
-                if cow.isAiming{
-                    cow.fireGun()
-                } else {
-                    cow.aimPoint = location
+            if currentCow.state == .Moving {
+                if playerTurnLabel.contains(location){
+                    currentCow.state = .Aiming
+                    playerTurnLabel.text = "Place Your Aim"
+                    playerTurnLabel.position = CGPoint(x: currentCow.position.x, y: currentCow.position.y + 70)
+                    return
                 }
                 
-                if moveBtn.contains(location){
-                    cow.move(dir: .left)
+                if location.x > player1.position.x {
+                    currentCow.move(dir: .right)
+                } else {
+                    currentCow.move(dir: .left)
                 }
             }
+            
+            if currentCow.state == .Aiming {
+                
+                currentCow.aim(position: location)
+                print(currentCow.aimPoint)
+                
+            }
+            
+            
+            
         }
     }
     
@@ -119,6 +217,13 @@ extension GameScene {
         let translation = sender.translation(in: view) * gameCamera.yScale
         gameCamera.position = CGPoint(x: gameCamera.position.x - translation.x, y: gameCamera.position.y + translation.y)
         sender.setTranslation(CGPoint.zero, in: view)
+        
+        
+        
+        //print("View size \(view.frame.size.width) , \(view.frame.size.height)")
+       // moveBtnRight.position = CGPoint(x:gameCamera.position.x , y: gameCamera.position.y)
+        //moveBtnLeft.position = CGPoint(x:gameCamera.position.x , y: gameCamera.position.y)
+        
     }
     
     @objc func pinch(sender: UIPinchGestureRecognizer){

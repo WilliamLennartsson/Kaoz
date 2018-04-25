@@ -19,6 +19,8 @@
 		723A013A2080F6A60022BBF1 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723A01392080F6A60022BBF1 /* Config.swift */; };
 		723A013C208100370022BBF1 /* Cow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723A013B208100370022BBF1 /* Cow.swift */; };
 		723A013E20810D080022BBF1 /* moveButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723A013D20810D080022BBF1 /* moveButton.swift */; };
+		7255823E2087C5BC00BA7B2A /* constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7255823D2087C5BC00BA7B2A /* constants.swift */; };
+		72EB0BFD20875DA600715E70 /* Bullet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72EB0BFC20875DA600715E70 /* Bullet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		723A01392080F6A60022BBF1 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		723A013B208100370022BBF1 /* Cow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cow.swift; sourceTree = "<group>"; };
 		723A013D20810D080022BBF1 /* moveButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = moveButton.swift; sourceTree = "<group>"; };
+		7255823D2087C5BC00BA7B2A /* constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = constants.swift; sourceTree = "<group>"; };
+		72EB0BFC20875DA600715E70 /* Bullet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bullet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +75,7 @@
 				723A01182080E47F0022BBF1 /* AppDelegate.swift */,
 				723A012A2080E47F0022BBF1 /* Info.plist */,
 				723A01392080F6A60022BBF1 /* Config.swift */,
+				7255823D2087C5BC00BA7B2A /* constants.swift */,
 				723A01362080EF110022BBF1 /* custom nodes */,
 				723A01342080EB570022BBF1 /* ViewController */,
 				723A01332080EB520022BBF1 /* Scenes */,
@@ -120,6 +125,7 @@
 			children = (
 				723A01372080EF290022BBF1 /* GameCamera.swift */,
 				723A013B208100370022BBF1 /* Cow.swift */,
+				72EB0BFC20875DA600715E70 /* Bullet.swift */,
 				723A013D20810D080022BBF1 /* moveButton.swift */,
 			);
 			path = "custom nodes";
@@ -201,11 +207,13 @@
 			files = (
 				723A013E20810D080022BBF1 /* moveButton.swift in Sources */,
 				723A011F2080E47F0022BBF1 /* GameScene.swift in Sources */,
+				7255823E2087C5BC00BA7B2A /* constants.swift in Sources */,
 				723A013C208100370022BBF1 /* Cow.swift in Sources */,
 				723A01212080E47F0022BBF1 /* GameViewController.swift in Sources */,
 				723A013A2080F6A60022BBF1 /* Config.swift in Sources */,
 				723A01382080EF290022BBF1 /* GameCamera.swift in Sources */,
 				723A01192080E47F0022BBF1 /* AppDelegate.swift in Sources */,
+				72EB0BFD20875DA600715E70 /* Bullet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

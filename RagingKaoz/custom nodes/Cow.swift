@@ -13,6 +13,13 @@ struct Bazooka {
     let bulletSpeed = 2
 }
 
+enum PlayerState {
+    case Moving
+    case Aiming
+    case AimLocked
+    case Waiting
+}
+
 enum Direction {
     case left
     case right
@@ -21,6 +28,9 @@ enum Direction {
 class Cow: SKSpriteNode {
     
     
+    var state : PlayerState = .Waiting
+    var bullets: [Bullet] = []
+    var magasine: [Bullet] = []
     var HP: Int = 150
     let cowSpeed: CGFloat = 8
     
@@ -54,6 +64,10 @@ class Cow: SKSpriteNode {
         physicsBody?.isDynamic = true
         physicsBody?.allowsRotation = false
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        physicsBody?.categoryBitMask = CowCategory
+        physicsBody?.contactTestBitMask = BulletCategory //Contact will be detected when GreenBall make a contact with RedBar or a Wall (assuming that redBar's masks are already properly set)
+        physicsBody?.collisionBitMask = BulletCategory
+
         
     }
     
@@ -62,6 +76,7 @@ class Cow: SKSpriteNode {
     }
     
     func fireGun(){
+        //Todo: Force charger
         if let aim = aimPoint {
             
             let bulletSpeed: CGFloat = 150
@@ -76,11 +91,15 @@ class Cow: SKSpriteNode {
             let dy: CGFloat = deltaY * bulletSpeed * chargeForce
             let dir: CGVector = CGVector(dx: dx, dy: dy)
             
-            var bullet = SKSpriteNode(color: UIColor.black, size: CGSize(width: 20, height: 20))
-            bullet.position = CGPoint(x: position.x, y: position.y)
-            bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width/2)
-            bullet.physicsBody?.affectedByGravity = true
-            bullet.physicsBody?.mass = 1
+            //var bullet = SKSpriteNode(color: UIColor.black, size: CGSize(width: 20, height: 20))
+            let bullet = Bullet()
+            
+            
+//            bullet.position = CGPoint(x: position.x, y: position.y)
+//            bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width/2)
+//            bullet.physicsBody?.affectedByGravity = true
+//            bullet.physicsBody?.mass = 1
+//            
             //bullet.physicsBody?.collisionBitMask = Colli
             super.addChild(bullet)
             bullet.physicsBody?.applyImpulse(dir)
@@ -88,10 +107,14 @@ class Cow: SKSpriteNode {
             currentAim = nil
             self.aimPoint = nil
             print("shot")
+            bullets.append(bullet)
         }
     }
     
+    
     func aim(position: CGPoint){
+        currentAim?.removeFromParent()
+        
 
         currentAim = SKSpriteNode(imageNamed: "aimBro2")
         currentAim!.size = CGSize(width: 100, height: 100)
@@ -116,4 +139,5 @@ class Cow: SKSpriteNode {
             physicsBody?.applyForce(CGVector(dx: 200, dy: 0))
         }
     }
+
 }
