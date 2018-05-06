@@ -27,14 +27,51 @@ enum Direction {
 
 class Cow: SKSpriteNode {
     
-    
     var state : PlayerState = .Waiting
-    var bullets: [Bullet] = []
-    var magasine: [Bullet] = []
-    var HP: Int = 150
-    let cowSpeed: CGFloat = 8
+    var maxLives = 3
+    var livesLeft: [SKSpriteNode] = []
+    let maxHP = 100
+    var HP: Int = 100 {
+        didSet {
+            livesLeft[livesLeft.count - 1].removeFromParent()
+            livesLeft.removeLast()
+            if livesLeft.count <= 0 {
+                isDead = true
+            }
+        }
+    }
     
+    let cowSpeed: CGFloat = 8
     var isAiming = false
+    var chargeForce: CGFloat = 4.5
+    
+    var isCharging = false {
+        didSet{
+            if isCharging {
+                let charge = SKAction.run {
+                    self.chargeForce += 0.17
+                    print(self.chargeForce)
+                    self.childNode(withName: "ChargeMeter")?.childNode(withName: "Progress")?.position.y -= 5
+                    if self.chargeForce > 11 {
+                        self.fireGun()
+                    }
+                }
+                
+                let wait = SKAction.wait(forDuration: 0.1)
+                let sequence = SKAction.sequence([charge, wait])
+                self.run(SKAction.repeatForever(sequence), withKey: "Charge")
+                chargeMeter()
+            } else {
+                if self.action(forKey: "Charge") != nil {
+                    self.removeAction(forKey: "Charge")
+                    chargeForce = 3
+                    if let meter = self.childNode(withName: "ChargeMeter") {
+                        meter.removeFromParent()
+                    }
+                }
+            }
+        }
+    }
     var currentAim: SKSpriteNode?
     var aimPoint: CGPoint? {
         didSet{
@@ -50,14 +87,16 @@ class Cow: SKSpriteNode {
     var isDead: Bool = false {
         didSet{
             if isDead{
-                
+                self.removeFromParent()
             }
         }
     }
     
     let cowSize = CGSize(width: 64, height: 64)
     init() {
-        super.init(texture: nil, color: UIColor.red, size:cowSize )
+        
+        let texture = SKTexture(imageNamed: "player")
+        super.init(texture: texture, color: UIColor.clear, size:cowSize )
         position = CGPoint(x: super.frame.size.width/2, y: super.frame.size.height/2)
         physicsBody = SKPhysicsBody(circleOfRadius: cowSize.width/2)
         physicsBody?.affectedByGravity = true
@@ -65,10 +104,9 @@ class Cow: SKSpriteNode {
         physicsBody?.allowsRotation = false
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         physicsBody?.categoryBitMask = CowCategory
-        physicsBody?.contactTestBitMask = BulletCategory //Contact will be detected when GreenBall make a contact with RedBar or a Wall (assuming that redBar's masks are already properly set)
+        physicsBody?.contactTestBitMask = BulletCategory
         physicsBody?.collisionBitMask = BulletCategory
-
-        
+        createHealthBars()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -76,11 +114,9 @@ class Cow: SKSpriteNode {
     }
     
     func fireGun(){
-        //Todo: Force charger
         if let aim = aimPoint {
             
             let bulletSpeed: CGFloat = 150
-            let chargeForce: CGFloat = 5
             var deltaX = (aim.x - position.x)
             var deltaY = (aim.y - position.y)
             let mag = sqrt(deltaX * deltaX + deltaY * deltaY)
@@ -91,53 +127,64 @@ class Cow: SKSpriteNode {
             let dy: CGFloat = deltaY * bulletSpeed * chargeForce
             let dir: CGVector = CGVector(dx: dx, dy: dy)
             
-            //var bullet = SKSpriteNode(color: UIColor.black, size: CGSize(width: 20, height: 20))
             let bullet = Bullet()
-            
-            
-//            bullet.position = CGPoint(x: position.x, y: position.y)
-//            bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width/2)
-//            bullet.physicsBody?.affectedByGravity = true
-//            bullet.physicsBody?.mass = 1
-//            
-            //bullet.physicsBody?.collisionBitMask = Colli
+
             super.addChild(bullet)
             bullet.physicsBody?.applyImpulse(dir)
             currentAim?.removeFromParent()
             currentAim = nil
             self.aimPoint = nil
+            isCharging = false
             print("shot")
-            bullets.append(bullet)
         }
     }
     
-    
     func aim(position: CGPoint){
         currentAim?.removeFromParent()
-        
-
         currentAim = SKSpriteNode(imageNamed: "aimBro2")
         currentAim!.size = CGSize(width: 100, height: 100)
         isAiming = true
-        currentAim!.position = position
-        
-//        let anchor = CGPoint(x: (currentAim?.position.x)! - ((currentAim?.size.width)!/2), y: (currentAim?.position.y)! - ((currentAim?.size.height)!/2))
+    
+        currentAim!.position = aimPoint!
         currentAim!.anchorPoint = CGPoint(x: 1, y: 1)
-        print("\(currentAim?.position)")
-        
-        super.addChild(currentAim!)
-        
+        parent?.childNode(withName: "map")?.addChild(currentAim!)
+    }
+    
+    func createHealthBars (){
+        var xOffset: CGFloat = 0
+        for _ in 1...maxLives {
+            let life = SKSpriteNode(imageNamed: "heart")
+            life.size = CGSize(width: cowSize.width/3, height: cowSize.height/3)
+            let xPos: CGFloat = (-cowSize.width/2) + xOffset
+            life.position = CGPoint(x: xPos, y: position.y + cowSize.height/2)
+            xOffset += life.size.width
+            self.addChild(life)
+            livesLeft.append(life)
+        }
+    }
+    
+    func chargeMeter(){
+        let progress: SKSpriteNode = SKSpriteNode(color: UIColor.blue, size: CGSize(width: 20, height: 200))
+        progress.position = CGPoint(x: 0, y: self.position.y + 100)
+        progress.name = "Progress"
+        let theMask: SKSpriteNode = SKSpriteNode(color: UIColor.green, size: CGSize(width: 50, height: 200))
+        theMask.position = progress.position
+        let cropNode:SKCropNode = SKCropNode()
+        cropNode.name = "ChargeMeter"
+        cropNode.addChild(progress)
+        cropNode.maskNode = theMask
+        self.addChild(cropNode)
     }
     
     func move(dir: Direction){
         switch dir {
         case .left:
             print("moved left")
-            physicsBody?.applyForce(CGVector(dx: -200, dy: 0))
+            
+            physicsBody?.applyForce(CGVector(dx: -350, dy: 0))
         case .right:
             print("moved right")
-            physicsBody?.applyForce(CGVector(dx: 200, dy: 0))
+            physicsBody?.applyForce(CGVector(dx: 350, dy: 0))
         }
     }
-
 }

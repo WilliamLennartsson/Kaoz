@@ -21,13 +21,12 @@ class Bullet: SKSpriteNode {
     
     init() {
         super.init(texture: nil, color: UIColor.black, size: boxSize)
-        position = CGPoint(x: position.x, y: position.y)
-        
+        position = CGPoint(x: position.x + 32, y: position.y + 65)
         physicsBody = SKPhysicsBody(circleOfRadius: size.width/2)
         physicsBody?.affectedByGravity = true
         physicsBody?.mass = 1
         physicsBody?.categoryBitMask = BulletCategory
-        physicsBody?.contactTestBitMask = CowCategory | BulletCategory
+        physicsBody?.contactTestBitMask = CowCategory
         physicsBody?.collisionBitMask = CowCategory | BulletCategory | GroundCategory
         
     }
